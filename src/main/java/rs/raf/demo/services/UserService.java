@@ -20,32 +20,37 @@ import rs.raf.demo.model.User;
 import rs.raf.demo.repositories.UserRepository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service
 public class UserService implements UserDetailsService {
 
     private PasswordEncoder passwordEncoder;
-
     private UserRepository userRepository;
-    private TaskScheduler taskScheduler;
 
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, TaskScheduler taskScheduler) {
+    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.passwordEncoder = passwordEncoder;
-
         this.userRepository = userRepository;
-        this.taskScheduler = taskScheduler;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User myUser = this.findByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User myUser = this.findByEmail(email);
         if(myUser == null) {
-            throw new UsernameNotFoundException("User name "+username+" not found");
+            throw new UsernameNotFoundException("Email "+email+" not found");
         }
 
-        return new org.springframework.security.core.userdetails.User(myUser.getUsername(), myUser.getPassword(), new ArrayList<>());
+        Collection<Permission> permissions = new ArrayList<>();
+        if (myUser.getPermissions() != null){
+            for(String s : myUser.getPermissions().split(";")) {
+                permissions.add(new Permission(s));
+            }
+        }
+
+        return new org.springframework.security.core.userdetails.User(myUser.getEmail(), myUser.getPassword(),
+                permissions);
     }
 
     public User create(User user) {
@@ -53,69 +58,26 @@ public class UserService implements UserDetailsService {
         return this.userRepository.save(user);
     }
 
-    public Page<User> paginate(Integer page, Integer size) {
-        return this.userRepository.findAll(PageRequest.of(page, size, Sort.by("salary").descending()));
+    public User findByEmail(String email) {
+        return this.userRepository.findUserByEmail(email);
     }
 
-    public User findByUsername(String username) {
-        return this.userRepository.findByUsername(username);
+    public List<User> getAllUsers() {
+        return this.userRepository.findAll();
     }
 
-    public void loggedIn(String username) {
-        User user = this.userRepository.findByUsername(username);
-        Integer loginCount = user.getLoginCount();
-        try {
-            Thread.sleep(10000);
-
-            user.setLoginCount(loginCount + 1);
-            this.userRepository.save(user);
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ObjectOptimisticLockingFailureException exception) {
-            this.loggedIn(username);
-        }
-    }
-
-//    @Scheduled(fixedDelay = 1000)
-//    public void scheduleFixedDelayTask() throws InterruptedException {
-//        System.out.println(
-//                "Fixed delay task - " + System.currentTimeMillis() / 1000);
-//        Thread.sleep(2000);
+//    public User update(UpdateUserRequest user) {
+//        User userToUpdate = this.userRepository.findUserByEmail(user.getEmail());
+//        userToUpdate.setFirstName(user.getFirstName());
+//        userToUpdate.setLastName(user.getLastName());
+//        userToUpdate.setEmail(user.getEmail());
+//        userToUpdate.setAuthorities(user.getAuthorities());
+//        return this.userRepository.save(userToUpdate);
 //    }
 
-
-//    @Scheduled(fixedRate = 3000)
-//    public void scheduleFixedRateTaskAsync() throws InterruptedException {
-//        System.out.println(
-//                "Fixed rate task async - " + System.currentTimeMillis() / 1000);
-//        Thread.sleep(5000);
-//        System.out.println(
-//                "Fixed rate task async - finished " + System.currentTimeMillis() / 1000);
-//    }
-
-    @Scheduled(cron = "0 * * * * *", zone = "Europe/Belgrade")
-    public void increaseUserBalance() {
-        System.out.println("Increasing balance...");
-        this.userRepository.increaseBalance(1);
-//        List<User> users = this.userRepository.findAll();
-//        for (User user : users) {
-//            user.setBalance(user.getBalance() + 1);
-//            this.userRepository.save(user);
-//        }
+    public void delete(Long id) {
+        this.userRepository.deleteUserByUserId(id);
     }
 
-    public User hire(String username, Integer salary) {
-        User user = this.userRepository.findByUsername(username);
-        user.setSalary(salary);
-        this.userRepository.save(user);
 
-        CronTrigger cronTrigger = new CronTrigger("0 * * * * *"); // "0 0 0 25 * *"
-        this.taskScheduler.schedule(() -> {
-            System.out.println("Getting salary...");
-            this.userRepository.increaseBalance(salary);
-        }, cronTrigger);
-
-        return user;
-    }
 }
