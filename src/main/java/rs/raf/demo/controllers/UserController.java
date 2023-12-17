@@ -13,6 +13,7 @@ import rs.raf.demo.services.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -28,6 +29,13 @@ public class UserController {
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> create(@Valid @RequestBody User user) {
+        List<User> allUsers = this.getAllUsers().getBody();
+        List<String> emailList = allUsers.stream()
+                .map(User::getEmail)
+                .collect(Collectors.toList());
+
+        if(emailList.contains(user.getEmail())) return ResponseEntity.status(HttpStatus.CONFLICT).build();
+
         if (!SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new Permission("can_create_users"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -59,6 +67,13 @@ public class UserController {
 
     @PostMapping("/update")
     public ResponseEntity<User> update(@Valid @RequestBody UpdateRequestDTO userDTO) {
+        List<User> allUsers = this.getAllUsers().getBody();
+        List<String> emailList = allUsers.stream()
+                .map(User::getEmail)
+                .collect(Collectors.toList());
+
+        if(emailList.contains(userDTO.getEmail())) return ResponseEntity.status(HttpStatus.CONFLICT).build();
+
         if (!SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new Permission("can_update_users"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
