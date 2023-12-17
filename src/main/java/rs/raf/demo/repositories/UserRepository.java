@@ -19,4 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("update User u set u.balance = u.balance + :amount")
     @Transactional
     public void increaseBalance(@Param("amount") Integer amount);
+
+    @Query("update User u set u.loginCount = u.loginCount + :amount")
+    @Modifying
+    @Transactional
+    public void increaseLogin(@Param("amount") Integer amount);
 }

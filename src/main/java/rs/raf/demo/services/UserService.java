@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -83,7 +84,7 @@ public class UserService implements UserDetailsService {
 //        Thread.sleep(2000);
 //    }
 
-//    @Async
+
 //    @Scheduled(fixedRate = 3000)
 //    public void scheduleFixedRateTaskAsync() throws InterruptedException {
 //        System.out.println(
@@ -96,11 +97,12 @@ public class UserService implements UserDetailsService {
     @Scheduled(cron = "0 * * * * *", zone = "Europe/Belgrade")
     public void increaseUserBalance() {
         System.out.println("Increasing balance...");
-//        this.userRepository.increaseBalance(1);
-        List<User> users = this.userRepository.findAll();
-        for (User user : users) {
-            user.setBalance(user.getBalance() + 1);
-        }
+        this.userRepository.increaseBalance(1);
+//        List<User> users = this.userRepository.findAll();
+//        for (User user : users) {
+//            user.setBalance(user.getBalance() + 1);
+//            this.userRepository.save(user);
+//        }
     }
 
     public User hire(String username, Integer salary) {
@@ -108,7 +110,7 @@ public class UserService implements UserDetailsService {
         user.setSalary(salary);
         this.userRepository.save(user);
 
-        CronTrigger cronTrigger = new CronTrigger("0 * * * * *"); // "0 0 0 */25 * *"
+        CronTrigger cronTrigger = new CronTrigger("0 * * * * *"); // "0 0 0 25 * *"
         this.taskScheduler.schedule(() -> {
             System.out.println("Getting salary...");
             this.userRepository.increaseBalance(salary);
