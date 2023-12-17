@@ -1,21 +1,13 @@
 package rs.raf.demo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import rs.raf.demo.model.Permission;
+import rs.raf.demo.model.UpdateRequestDTO;
 import rs.raf.demo.model.User;
 import rs.raf.demo.repositories.UserRepository;
 
@@ -66,14 +58,14 @@ public class UserService implements UserDetailsService {
         return this.userRepository.findAll();
     }
 
-//    public User update(UpdateUserRequest user) {
-//        User userToUpdate = this.userRepository.findUserByEmail(user.getEmail());
-//        userToUpdate.setFirstName(user.getFirstName());
-//        userToUpdate.setLastName(user.getLastName());
-//        userToUpdate.setEmail(user.getEmail());
-//        userToUpdate.setAuthorities(user.getAuthorities());
-//        return this.userRepository.save(userToUpdate);
-//    }
+    public User update(UpdateRequestDTO userDTO) {
+        User userToUpdate = this.userRepository.findUserByEmail(userDTO.getEmail());
+        userToUpdate.setFirstName(userDTO.getFirstName());
+        userToUpdate.setLastName(userDTO.getLastName());
+        userToUpdate.setEmail(userDTO.getEmail());
+        userToUpdate.setPermissions(userDTO.getPermissions());
+        return this.userRepository.save(userToUpdate);
+    }
 
     public void delete(Long id) {
         this.userRepository.deleteUserByUserId(id);

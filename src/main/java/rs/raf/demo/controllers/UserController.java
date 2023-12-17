@@ -1,14 +1,14 @@
 package rs.raf.demo.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import rs.raf.demo.model.UpdateRequestDTO;
 import rs.raf.demo.model.User;
-import rs.raf.demo.services.Permission;
+import rs.raf.demo.model.Permission;
 import rs.raf.demo.services.UserService;
 
 import javax.validation.Valid;
@@ -48,5 +48,20 @@ public class UserController {
         return this.userService.findByEmail(email);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Boolean> delete(@PathVariable("id") Long id) {
+        if (!SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new Permission("can_delete_users"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        userService.delete(id);
+        return ResponseEntity.ok().build();
+    }
 
+    @PostMapping("/update")
+    public ResponseEntity<User> update(@Valid @RequestBody UpdateRequestDTO userDTO) {
+        if (!SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new Permission("can_update_users"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(userService.update(userDTO));
+    }
 }
