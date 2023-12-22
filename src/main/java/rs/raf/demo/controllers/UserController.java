@@ -72,7 +72,7 @@ public class UserController {
                 .map(User::getEmail)
                 .collect(Collectors.toList());
 
-        if(emailList.contains(userDTO.getEmail())) return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        //if(emailList.contains(userDTO.getEmail())) return ResponseEntity.status(HttpStatus.CONFLICT).build();
 
         if (!SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new Permission("can_update_users"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

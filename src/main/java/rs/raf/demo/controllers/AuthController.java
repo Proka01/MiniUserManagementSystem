@@ -42,13 +42,19 @@ public class AuthController {
         boolean updateUsersPerm = u.getPermissions().contains("can_update_users");
         boolean deleteUsersPerm = u.getPermissions().contains("can_delete_users");
 
+        System.out.println(loginRequest.getEmail());
+        System.out.println(createUsersPerm);
+        System.out.println(readUsersPerm);
+        System.out.println(updateUsersPerm);
+        System.out.println(deleteUsersPerm);
+
         System.out.println("USOOOOOOOOOOOOOO ALEKSA");
 
         return ResponseEntity.ok(
                 new LoginResponse(
                         jwtUtil.generateToken(loginRequest.getEmail(), userService.findByEmail(loginRequest.getEmail()).getPermissions()),
-                        createUsersPerm,
                         readUsersPerm,
+                        createUsersPerm,
                         updateUsersPerm,
                         deleteUsersPerm
                 )
